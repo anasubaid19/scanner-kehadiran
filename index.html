@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner Wisuda AL-WILDAN</title>
+    <!-- Library HTML5-QRCode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+            min-height: 100vh;
+            margin: 0; 
+            padding: 20px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { color: #0f766e; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+        .header p { color: #64748b; margin: 5px 0 0 0; font-weight: 500;}
+        
+        .scanner-container {
+            width: 100%; 
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 24px; 
+        }
+        
+        #reader { width: 100%; border-radius: 16px; overflow: hidden; border: none !important; }
+        #reader video { border-radius: 16px; object-fit: cover; }
+        
+        #result-box {
+            margin-top: 20px; padding: 16px;
+            border-radius: 14px; text-align: center;
+            font-weight: 600; display: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .success { background-color: rgba(209, 250, 229, 0.9); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .error { background-color: rgba(254, 226, 226, 0.9); color: #991b1b; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .warning { background-color: rgba(254, 243, 199, 0.9); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        .footer-credit {
+            margin-top: 40px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .footer-credit a {
+            color: #0f766e;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        .footer-credit a:hover {
+            transform: scale(1.05);
+            color: #115e59;
+        }
+
+        /* Menyembunyikan elemen bawaan dari library html5-qrcode yang kurang bagus */
+        #reader__dashboard_section_csr span { display: none !important; }
+        #reader__dashboard_section_swaplink { text-decoration: none !important; color: #0f766e !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>QR Scanner</h1>
+        <p>Wisuda Akbar Ke-12</p>
+    </div>
+
+    <div class="scanner-container">
+        <!-- Tempat kamera akan dimunculkan -->
+        <div id="reader"></div>
+        <!-- Tempat notifikasi Hadir/Gagal muncul -->
+        <div id="result-box"></div>
+    </div>
+
+    <div class="footer-credit">
+        created by <a href="https://www.instagram.com/_anasubaid/" target="_blank">@_anasubaid</a>
+    </div>
+
+    <script>
+        // --- KONFIGURASI API ---
+        // PENTING: Ganti nilai variabel ini dengan Web App URL dari Google Apps Script Anda.
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwcizr8_jssDxRD-v1LO916L15B7iMjgYhDdioj_7v4TDURPvsIo2k2TG5hf18ASZS7/exec";
+        
+        let isProcessing = false;
+
+        // Fungsi yang dijalankan ketika QR Code berhasil terbaca
+        function onScanSuccess(decodedText, decodedResult) {
+            // Jika sedang memproses data sebelumnya, abaikan scan baru
+            if (isProcessing) return; 
+            isProcessing = true;
+            
+            // Tampilkan status loading
+            showResult("Memproses ID: " + decodedText + "...", "warning");
+            
+            // Kirim data ke Google Apps Script via POST (URLSearchParams menghindari isu CORS)
+            fetch(GAS_WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ id_unik: decodedText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Tampilkan pesan dari server (sukses/gagal/sudah hadir)
+                showResult(data.message, data.status);
+                
+                // Beri jeda 2.5 detik sebelum kotak pesan hilang dan kamera siap scan lagi
+                setTimeout(() => {
+                    document.getElementById('result-box').style.display = 'none';
+                    isProcessing = false;
+                }, 2500);
+            })
+            .catch(err => {
+                showResult("Gagal koneksi ke server. Pastikan HP terkoneksi internet.", "error");
+                setTimeout(() => { 
+                    document.getElementById('result-box').style.display = 'none';
+                    isProcessing = false; 
+                }, 3000);
+            });
+        }
+
+        // Fungsi pembantu untuk memunculkan kotak notifikasi
+        function showResult(text, type) {
+            const box = document.getElementById('result-box');
+            box.style.display = 'block';
+            box.className = ''; // Reset class
+            box.classList.add(type); // Tambahkan class success, error, atau warning
+            box.innerText = text;
+        }
+
+        // --- INISIALISASI KAMERA ---
+        // Membuat instance scanner dengan konfigurasi UI yang lebih rapi
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { 
+                fps: 10, // Frame per second (kecepatan baca)
+                qrbox: {width: 250, height: 250}, // Area kotak target scan
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true // Menampilkan tombol senter jika HP mendukung
+            }, 
+            false
+        );
+        
+        // Memulai kamera
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>
