@@ -3,159 +3,599 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner Wisuda AL-WILDAN</title>
-    <!-- Library HTML5-QRCode -->
+    <title>Scanner Absensi — Wisuda Akbar AL-WILDAN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green-950: #052e16;
+            --green-900: #14532d;
+            --green-800: #166534;
+            --green-700: #15803d;
+            --green-500: #22c55e;
+            --green-400: #4ade80;
+            --green-100: #dcfce7;
+            --red-600:   #dc2626;
+            --red-100:   #fee2e2;
+            --amber-500: #f59e0b;
+            --amber-100: #fef3c7;
+            --white:     #ffffff;
+            --surface:   rgba(255,255,255,0.08);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
-            min-height: 100vh;
-            margin: 0; 
-            padding: 20px;
-            display: flex; 
-            flex-direction: column; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--green-950);
+            min-height: 100svh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0 40px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ── Background decoration ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,197,94,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(21,128,61,0.12) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* geometric pattern */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-wrap {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            padding: 36px 0 0;
+        }
+
+        .header .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34,197,94,0.15);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--green-400);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .header .badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green-400);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+        }
+
+        .header h1 span {
+            color: var(--green-400);
+        }
+
+        .header p {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.45);
+            font-weight: 500;
+        }
+
+        /* ── Camera card ── */
+        .camera-card {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .camera-viewport {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* video element dari html5-qrcode */
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+        }
+
+        #reader {
+            width: 100% !important;
+            border: none !important;
+        }
+
+        /* Sembunyikan semua UI bawaan html5-qrcode */
+        #reader > img,
+        #reader__dashboard,
+        #reader__filescan_input,
+        #reader__status_span,
+        #reader__camera_permission_button,
+        #reader__dashboard_section_swaplink,
+        #reader__dashboard_section_csr button,
+        #reader__dashboard_section_csr span,
+        #reader__header_message {
+            display: none !important;
+        }
+
+        /* ── Scan overlay ── */
+        .scan-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
         }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: #0f766e; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-        .header p { color: #64748b; margin: 5px 0 0 0; font-weight: 500;}
-        
-        .scanner-container {
-            width: 100%; 
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            border-radius: 24px; 
-        }
-        
-        #reader { width: 100%; border-radius: 16px; overflow: hidden; border: none !important; }
-        #reader video { border-radius: 16px; object-fit: cover; }
-        
-        #result-box {
-            margin-top: 20px; padding: 16px;
-            border-radius: 14px; text-align: center;
-            font-weight: 600; display: none;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        
-        .success { background-color: rgba(209, 250, 229, 0.9); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.4); }
-        .error { background-color: rgba(254, 226, 226, 0.9); color: #991b1b; border: 1px solid rgba(239, 68, 68, 0.4); }
-        .warning { background-color: rgba(254, 243, 199, 0.9); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.4); }
 
-        .footer-credit {
-            margin-top: 40px;
-            font-size: 13px;
-            color: #94a3b8;
+        /* Dark corners around scan area */
+        .scan-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 28%, transparent 72%, rgba(0,0,0,0.55) 100%),
+                linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 28%, transparent 72%, rgba(0,0,0,0.55) 100%);
         }
-        .footer-credit a {
-            color: #0f766e;
+
+        .scan-frame {
+            position: relative;
+            width: 62%;
+            aspect-ratio: 1/1;
+        }
+
+        /* Corner brackets */
+        .scan-frame::before,
+        .scan-frame::after,
+        .scan-frame > span::before,
+        .scan-frame > span::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-color: var(--green-400);
+            border-style: solid;
+        }
+        .scan-frame::before  { top: 0;    left: 0;  border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+        .scan-frame::after   { top: 0;    right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+        .scan-frame > span::before { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+        .scan-frame > span::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+        /* Scanning laser line */
+        .scan-line {
+            position: absolute;
+            left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green-400), transparent);
+            box-shadow: 0 0 8px var(--green-400), 0 0 20px rgba(74,222,128,0.4);
+            animation: scan-sweep 2s ease-in-out infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes scan-sweep {
+            0%   { top: 10%; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 90%; opacity: 0; }
+        }
+
+        /* ── Instruction text under camera ── */
+        .scan-hint {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 12.5px;
+            color: rgba(255,255,255,0.4);
+            font-weight: 500;
+        }
+
+        /* ── Result notification ── */
+        .result-card {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            display: none;
+            animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .result-card.success {
+            display: block;
+            background: linear-gradient(135deg, rgba(20,83,45,0.95), rgba(22,101,52,0.9));
+            border: 1px solid rgba(74,222,128,0.4);
+            box-shadow: 0 4px 24px rgba(34,197,94,0.2);
+        }
+
+        .result-card.error {
+            display: block;
+            background: linear-gradient(135deg, rgba(127,29,29,0.95), rgba(153,27,27,0.9));
+            border: 1px solid rgba(239,68,68,0.4);
+            box-shadow: 0 4px 24px rgba(220,38,38,0.2);
+        }
+
+        .result-card.warning {
+            display: block;
+            background: linear-gradient(135deg, rgba(120,53,15,0.95), rgba(146,64,14,0.9));
+            border: 1px solid rgba(245,158,11,0.4);
+            box-shadow: 0 4px 24px rgba(245,158,11,0.15);
+        }
+
+        .result-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .result-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 3px;
+        }
+
+        .result-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+        }
+
+        /* ── Status bar ── */
+        .status-bar {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green-400);
+            flex-shrink: 0;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+        }
+
+        .scan-count {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--green-400);
+            background: rgba(34,197,94,0.12);
+            border-radius: 999px;
+            padding: 3px 10px;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .footer a {
+            color: rgba(255,255,255,0.35);
             text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
-        .footer-credit a:hover {
-            transform: scale(1.05);
-            color: #115e59;
+            font-weight: 700;
+            transition: color 0.2s;
         }
 
-        /* Menyembunyikan elemen bawaan dari library html5-qrcode yang kurang bagus */
-        #reader__dashboard_section_csr span { display: none !important; }
-        #reader__dashboard_section_swaplink { text-decoration: none !important; color: #0f766e !important; font-weight: bold; }
+        .footer a:hover { color: var(--green-400); }
+
+        /* ── Loading state ── */
+        .cam-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 20;
+            border-radius: var(--radius-lg);
+            transition: opacity 0.4s;
+        }
+
+        .cam-loading.hidden { opacity: 0; pointer-events: none; }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: var(--green-400);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .cam-loading p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+        }
+
+        /* ── Haptic flash on scan ── */
+        .flash {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.12);
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            animation: flash-anim 0.3s ease forwards;
+        }
+
+        @keyframes flash-anim {
+            0%  { opacity: 1; }
+            100%{ opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
+<div class="page-wrap">
+
+    <!-- Header -->
     <div class="header">
-        <h1>QR Scanner</h1>
-        <p>Wisuda Akbar Ke-12</p>
+        <div class="badge">Live Scanner</div>
+        <h1>Absensi <span>Wisuda</span><br>AL-WILDAN</h1>
+        <p>Wisuda Akbar Ke-12 · 2026</p>
     </div>
 
-    <div class="scanner-container">
-        <!-- Tempat kamera akan dimunculkan -->
-        <div id="reader"></div>
-        <!-- Tempat notifikasi Hadir/Gagal muncul -->
-        <div id="result-box"></div>
+    <!-- Camera card -->
+    <div class="camera-card">
+        <div class="camera-viewport">
+            <!-- Loading overlay -->
+            <div class="cam-loading" id="cam-loading">
+                <div class="spinner"></div>
+                <p>Memuat kamera...</p>
+            </div>
+
+            <!-- QR reader -->
+            <div id="reader"></div>
+
+            <!-- Scan overlay (frame + laser) -->
+            <div class="scan-overlay">
+                <div class="scan-frame">
+                    <span></span>
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+        </div>
+        <p class="scan-hint">Arahkan QR Code ke dalam bingkai</p>
     </div>
 
-    <div class="footer-credit">
-        created by <a href="https://www.instagram.com/_anasubaid/" target="_blank">@_anasubaid</a>
+    <!-- Result notification -->
+    <div class="result-card" id="result-card">
+        <div class="result-icon" id="result-icon"></div>
+        <div class="result-title" id="result-title"></div>
+        <div class="result-sub" id="result-sub"></div>
     </div>
 
-    <script>
-        // --- KONFIGURASI API ---
-        // PENTING: Ganti nilai variabel ini dengan Web App URL dari Google Apps Script Anda.
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwcizr8_jssDxRD-v1LO916L15B7iMjgYhDdioj_7v4TDURPvsIo2k2TG5hf18ASZS7/exec";
-        
-        let isProcessing = false;
+    <!-- Status bar -->
+    <div class="status-bar">
+        <div class="status-dot"></div>
+        <span class="status-text" id="status-text">Kamera aktif — siap scan</span>
+        <span class="scan-count" id="scan-count">0 scan</span>
+    </div>
 
-        // Fungsi yang dijalankan ketika QR Code berhasil terbaca
-        function onScanSuccess(decodedText, decodedResult) {
-            // Jika sedang memproses data sebelumnya, abaikan scan baru
-            if (isProcessing) return; 
-            isProcessing = true;
-            
-            // Tampilkan status loading
-            showResult("Memproses ID: " + decodedText + "...", "warning");
-            
-            // Kirim data ke Google Apps Script via POST (URLSearchParams menghindari isu CORS)
-            fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({ id_unik: decodedText })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Tampilkan pesan dari server (sukses/gagal/sudah hadir)
-                showResult(data.message, data.status);
-                
-                // Beri jeda 2.5 detik sebelum kotak pesan hilang dan kamera siap scan lagi
-                setTimeout(() => {
-                    document.getElementById('result-box').style.display = 'none';
-                    isProcessing = false;
-                }, 2500);
-            })
-            .catch(err => {
-                showResult("Gagal koneksi ke server. Pastikan HP terkoneksi internet.", "error");
-                setTimeout(() => { 
-                    document.getElementById('result-box').style.display = 'none';
-                    isProcessing = false; 
-                }, 3000);
-            });
+    <!-- Footer -->
+    <div class="footer">
+        Scanner by <a href="https://www.instagram.com/_anasubaid/" target="_blank">@_anasubaid</a>
+    </div>
+
+</div>
+
+<script>
+    // ── KONFIGURASI ──────────────────────────────────────────
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwcizr8_jssDxRD-v1LO916L15B7iMjgYhDdioj_7v4TDURPvsIo2k2TG5hf18ASZS7/exec";
+    // ────────────────────────────────────────────────────────
+
+    let isProcessing = false;
+    let scanCount = 0;
+
+    // Helper: flash putih saat scan berhasil dibaca
+    function triggerFlash() {
+        const el = document.createElement('div');
+        el.className = 'flash';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 400);
+    }
+
+    // Helper: tampilkan result card
+    function showResult(icon, title, sub, type) {
+        const card  = document.getElementById('result-card');
+        const iEl   = document.getElementById('result-icon');
+        const tEl   = document.getElementById('result-title');
+        const sEl   = document.getElementById('result-sub');
+
+        card.className = 'result-card'; // reset
+        iEl.textContent = icon;
+        tEl.textContent = title;
+        sEl.textContent = sub;
+
+        // Force reflow untuk re-trigger animasi
+        void card.offsetWidth;
+        card.classList.add(type);
+    }
+
+    function hideResult() {
+        document.getElementById('result-card').className = 'result-card';
+    }
+
+    // Update status bar text
+    function setStatus(text) {
+        document.getElementById('status-text').textContent = text;
+    }
+
+    function updateScanCount() {
+        const el = document.getElementById('scan-count');
+        el.textContent = scanCount + (scanCount === 1 ? ' scan' : ' scan');
+    }
+
+    // ── ON SCAN SUCCESS ───────────────────────────────────────
+    function onScanSuccess(decodedText) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        triggerFlash();
+        scanCount++;
+        updateScanCount();
+        setStatus('Memproses: ' + decodedText);
+        showResult('⏳', 'Mengecek data...', 'ID: ' + decodedText, 'warning');
+
+        fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ id_unik: decodedText })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResult('✅', data.message, data.detail || ('ID: ' + decodedText), 'success');
+                setStatus('Berhasil — siap scan berikutnya');
+            } else if (data.status === 'warning') {
+                showResult('⚠️', data.message, data.detail || 'Sudah tercatat sebelumnya', 'warning');
+                setStatus('Duplikat — siap scan berikutnya');
+            } else {
+                showResult('❌', data.message, data.detail || ('ID tidak ditemukan: ' + decodedText), 'error');
+                setStatus('Gagal — siap scan berikutnya');
+            }
+
+            setTimeout(() => {
+                hideResult();
+                setStatus('Kamera aktif — siap scan');
+                isProcessing = false;
+            }, 2800);
+        })
+        .catch(() => {
+            showResult('📡', 'Gagal terhubung ke server', 'Pastikan HP terkoneksi internet', 'error');
+            setStatus('Error koneksi');
+            setTimeout(() => {
+                hideResult();
+                setStatus('Kamera aktif — siap scan');
+                isProcessing = false;
+            }, 3200);
+        });
+    }
+
+    // ── INISIALISASI KAMERA ───────────────────────────────────
+    // Gunakan Html5Qrcode (bukan Scanner) agar video terlihat
+    const html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(cameras => {
+        if (!cameras || cameras.length === 0) {
+            setStatus('Kamera tidak ditemukan');
+            document.getElementById('cam-loading').querySelector('p').textContent = 'Kamera tidak ditemukan';
+            return;
         }
 
-        // Fungsi pembantu untuk memunculkan kotak notifikasi
-        function showResult(text, type) {
-            const box = document.getElementById('result-box');
-            box.style.display = 'block';
-            box.className = ''; // Reset class
-            box.classList.add(type); // Tambahkan class success, error, atau warning
-            box.innerText = text;
-        }
-
-        // --- INISIALISASI KAMERA ---
-        // Membuat instance scanner dengan konfigurasi UI yang lebih rapi
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { 
-                fps: 10, // Frame per second (kecepatan baca)
-                qrbox: {width: 250, height: 250}, // Area kotak target scan
-                aspectRatio: 1.0,
-                showTorchButtonIfSupported: true // Menampilkan tombol senter jika HP mendukung
-            }, 
-            false
+        // Pilih kamera belakang jika ada
+        const backCam = cameras.find(c =>
+            c.label.toLowerCase().includes('back') ||
+            c.label.toLowerCase().includes('belakang') ||
+            c.label.toLowerCase().includes('rear') ||
+            c.label.toLowerCase().includes('environment')
         );
-        
-        // Memulai kamera
-        html5QrcodeScanner.render(onScanSuccess);
-    </script>
+        const camId = backCam ? backCam.id : cameras[cameras.length - 1].id;
+
+        html5QrCode.start(
+            camId,
+            {
+                fps: 12,
+                qrbox: { width: 220, height: 220 },
+                aspectRatio: 1.0,
+                disableFlip: false
+            },
+            onScanSuccess
+        ).then(() => {
+            // Sembunyikan loading overlay saat kamera sudah aktif
+            document.getElementById('cam-loading').classList.add('hidden');
+            setStatus('Kamera aktif — siap scan');
+        }).catch(err => {
+            console.error(err);
+            document.getElementById('cam-loading').querySelector('p').textContent = 'Izinkan akses kamera';
+            setStatus('Akses kamera ditolak');
+        });
+
+    }).catch(err => {
+        console.error(err);
+        document.getElementById('cam-loading').querySelector('p').textContent = 'Gagal memuat kamera';
+        setStatus('Error: ' + err);
+    });
+</script>
 </body>
 </html>
