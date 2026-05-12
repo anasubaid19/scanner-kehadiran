@@ -11,19 +11,23 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --green-950: #052e16;
-            --green-900: #14532d;
-            --green-800: #166534;
-            --green-700: #15803d;
-            --green-500: #22c55e;
-            --green-400: #4ade80;
-            --green-100: #dcfce7;
-            --red-600:   #dc2626;
-            --red-100:   #fee2e2;
-            --amber-500: #f59e0b;
-            --amber-100: #fef3c7;
-            --white:     #ffffff;
-            --surface:   rgba(255,255,255,0.08);
+            /* Tema Biru (Navy) & Emas */
+            --bg-deep: #070f22;
+            --blue-900: #0d1e40;
+            --blue-700: #1d4ed8;
+            --blue-500: #3b82f6;
+            --blue-400: #60a5fa;
+            
+            --gold-600: #b45309;
+            --gold-500: #f59e0b;
+            --gold-400: #fbbf24;
+            --gold-300: #fcd34d;
+            
+            --red-500:  #ef4444;
+            --white:    #ffffff;
+            
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(251, 191, 36, 0.2); /* Golden border */
             --radius-xl: 24px;
             --radius-lg: 16px;
             --radius-md: 12px;
@@ -31,7 +35,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--green-950);
+            background: var(--bg-deep);
             min-height: 100svh;
             display: flex;
             flex-direction: column;
@@ -39,28 +43,29 @@
             padding: 0 0 40px;
             overflow-x: hidden;
             position: relative;
+            color: var(--white);
         }
 
-        /* ── Background decoration ── */
+        /* ── Liquid Glass Background Decoration ── */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,197,94,0.18) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(21,128,61,0.12) 0%, transparent 60%);
+                radial-gradient(ellipse 70% 60% at 80% -10%, rgba(245, 158, 11, 0.15) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 20% 110%, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* geometric pattern */
+        /* Geometric pattern overlay */
         body::after {
             content: '';
             position: fixed;
             inset: 0;
             background-image:
-                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px),
-                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px);
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
             pointer-events: none;
             z-index: 0;
         }
@@ -87,13 +92,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.3);
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 999px;
             padding: 5px 14px;
             font-size: 11px;
             font-weight: 700;
-            color: var(--green-400);
+            color: var(--gold-400);
             letter-spacing: 1.2px;
             text-transform: uppercase;
             margin-bottom: 14px;
@@ -103,13 +108,13 @@
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--green-400);
+            background: var(--gold-400);
             animation: pulse-dot 2s ease-in-out infinite;
         }
 
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px var(--gold-500); }
+            50% { opacity: 0.4; transform: scale(0.7); box-shadow: 0 0 0 transparent; }
         }
 
         .header h1 {
@@ -121,24 +126,29 @@
         }
 
         .header h1 span {
-            color: var(--green-400);
+            color: var(--gold-400);
+            background: -webkit-linear-gradient(0deg, var(--gold-300), var(--gold-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .header p {
             margin-top: 6px;
             font-size: 13px;
-            color: rgba(255,255,255,0.45);
+            color: rgba(255,255,255,0.5);
             font-weight: 500;
         }
 
-        /* ── Camera card ── */
+        /* ── Camera Card (Liquid Glass) ── */
         .camera-card {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
             padding: 16px;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .camera-viewport {
@@ -148,23 +158,33 @@
             border-radius: var(--radius-lg);
             overflow: hidden;
             background: #000;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* video element dari html5-qrcode */
-        #reader video {
+        /* PERBAIKAN PRESISI KAMERA */
+        #reader {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;
-            display: block !important;
+            border: none !important;
+            padding: 0 !important;
         }
 
-        #reader {
+        #reader video {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 100% !important;
-            border: none !important;
+            height: 100% !important;
+            object-fit: cover !important; /* Mencegah video gepeng/tertarik */
+            display: block !important;
         }
 
         /* Sembunyikan semua UI bawaan html5-qrcode */
         #reader > img,
+        #reader > canvas,
         #reader__dashboard,
         #reader__filescan_input,
         #reader__status_span,
@@ -176,7 +196,7 @@
             display: none !important;
         }
 
-        /* ── Scan overlay ── */
+        /* ── Scan Overlay Frame ── */
         .scan-overlay {
             position: absolute;
             inset: 0;
@@ -193,110 +213,56 @@
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 28%, transparent 72%, rgba(0,0,0,0.55) 100%),
-                linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 28%, transparent 72%, rgba(0,0,0,0.55) 100%);
+                linear-gradient(to right, rgba(7, 15, 34, 0.55) 0%, transparent 25%, transparent 75%, rgba(7, 15, 34, 0.55) 100%),
+                linear-gradient(to bottom, rgba(7, 15, 34, 0.55) 0%, transparent 25%, transparent 75%, rgba(7, 15, 34, 0.55) 100%);
         }
 
         .scan-frame {
             position: relative;
-            width: 62%;
+            width: 65%;
             aspect-ratio: 1/1;
         }
 
-        /* Corner brackets */
+        /* Golden Corner brackets */
         .scan-frame::before,
         .scan-frame::after,
         .scan-frame > span::before,
         .scan-frame > span::after {
             content: '';
             position: absolute;
-            width: 22px;
-            height: 22px;
-            border-color: var(--green-400);
+            width: 30px;
+            height: 30px;
+            border-color: var(--gold-400);
             border-style: solid;
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
         }
-        .scan-frame::before  { top: 0;    left: 0;  border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-        .scan-frame::after   { top: 0;    right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-        .scan-frame > span::before { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-        .scan-frame > span::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+        .scan-frame::before  { top: 0;    left: 0;  border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
+        .scan-frame::after   { top: 0;    right: 0; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
+        .scan-frame > span::before { bottom: 0; left: 0;  border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
+        .scan-frame > span::after  { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
 
         /* Scanning laser line */
         .scan-line {
             position: absolute;
-            left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--green-400), transparent);
-            box-shadow: 0 0 8px var(--green-400), 0 0 20px rgba(74,222,128,0.4);
+            left: 5%; right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
+            box-shadow: 0 0 12px var(--gold-400), 0 0 24px rgba(251, 191, 36, 0.5);
             animation: scan-sweep 2s ease-in-out infinite;
             border-radius: 2px;
         }
 
         @keyframes scan-sweep {
-            0%   { top: 10%; opacity: 0; }
+            0%   { top: 5%; opacity: 0; }
             10%  { opacity: 1; }
             90%  { opacity: 1; }
-            100% { top: 90%; opacity: 0; }
+            100% { top: 95%; opacity: 0; }
         }
 
-        /* ── Instruction text under camera ── */
         .scan-hint {
-            margin-top: 12px;
+            margin-top: 14px;
             text-align: center;
-            font-size: 12.5px;
-            color: rgba(255,255,255,0.4);
-            font-weight: 500;
-        }
-
-        /* ── Result notification ── */
-        .result-card {
-            width: 100%;
-            border-radius: var(--radius-lg);
-            padding: 16px 18px;
-            display: none;
-            animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes slide-up {
-            from { opacity: 0; transform: translateY(12px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .result-card.success {
-            display: block;
-            background: linear-gradient(135deg, rgba(20,83,45,0.95), rgba(22,101,52,0.9));
-            border: 1px solid rgba(74,222,128,0.4);
-            box-shadow: 0 4px 24px rgba(34,197,94,0.2);
-        }
-
-        .result-card.error {
-            display: block;
-            background: linear-gradient(135deg, rgba(127,29,29,0.95), rgba(153,27,27,0.9));
-            border: 1px solid rgba(239,68,68,0.4);
-            box-shadow: 0 4px 24px rgba(220,38,38,0.2);
-        }
-
-        .result-card.warning {
-            display: block;
-            background: linear-gradient(135deg, rgba(120,53,15,0.95), rgba(146,64,14,0.9));
-            border: 1px solid rgba(245,158,11,0.4);
-            box-shadow: 0 4px 24px rgba(245,158,11,0.15);
-        }
-
-        .result-icon {
-            font-size: 28px;
-            margin-bottom: 6px;
-            line-height: 1;
-        }
-
-        .result-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 3px;
-        }
-
-        .result-sub {
-            font-size: 12px;
+            font-size: 13px;
             color: rgba(255,255,255,0.6);
             font-weight: 500;
         }
@@ -304,94 +270,190 @@
         /* ── Status bar ── */
         .status-bar {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--glass-bg);
+            border: 1px solid rgba(255,255,255,0.05);
             border-radius: var(--radius-md);
             padding: 12px 16px;
             display: flex;
             align-items: center;
             gap: 10px;
+            backdrop-filter: blur(8px);
         }
 
         .status-dot {
             width: 8px; height: 8px;
             border-radius: 50%;
-            background: var(--green-400);
+            background: var(--blue-400);
             flex-shrink: 0;
-            animation: pulse-dot 2s ease-in-out infinite;
+            animation: pulse-dot-blue 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot-blue {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--blue-500); }
+            50% { opacity: 0.5; box-shadow: 0 0 0 transparent; }
         }
 
         .status-text {
             font-size: 12px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.7);
             font-weight: 500;
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .scan-count {
-            margin-left: auto;
             font-size: 11px;
             font-weight: 700;
-            color: var(--green-400);
-            background: rgba(34,197,94,0.12);
+            color: var(--blue-900);
+            background: var(--gold-400);
             border-radius: 999px;
-            padding: 3px 10px;
+            padding: 4px 12px;
+            flex-shrink: 0;
         }
-
-        /* ── Footer ── */
-        .footer {
-            font-size: 11px;
-            color: rgba(255,255,255,0.2);
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .footer a {
-            color: rgba(255,255,255,0.35);
-            text-decoration: none;
-            font-weight: 700;
-            transition: color 0.2s;
-        }
-
-        .footer a:hover { color: var(--green-400); }
 
         /* ── Loading state ── */
         .cam-loading {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(7, 15, 34, 0.85);
+            backdrop-filter: blur(4px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 12px;
             z-index: 20;
-            border-radius: var(--radius-lg);
             transition: opacity 0.4s;
         }
 
         .cam-loading.hidden { opacity: 0; pointer-events: none; }
 
         .spinner {
-            width: 36px; height: 36px;
-            border: 3px solid rgba(255,255,255,0.15);
-            border-top-color: var(--green-400);
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--gold-400);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .cam-loading p {
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            font-weight: 500;
+        /* ── Pop-Up Modal (Liquid Glass) ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-card {
+            background: rgba(13, 30, 64, 0.85); /* Deep navy glass */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 360px;
+            padding: 30px 24px;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        /* Modal Themes based on status */
+        .modal-card.success .modal-icon {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .modal-card.warning .modal-icon {
+            background: rgba(245, 158, 11, 0.2);
+            border: 2px solid var(--gold-500);
+            color: var(--gold-500);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .modal-card.error .modal-icon {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--red-500);
+            color: var(--red-500);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .modal-message {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+            color: var(--blue-900);
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: var(--radius-lg);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.97);
         }
 
         /* ── Haptic flash on scan ── */
         .flash {
             position: fixed;
             inset: 0;
-            background: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.4);
             pointer-events: none;
             z-index: 999;
             opacity: 0;
@@ -402,6 +464,16 @@
             0%  { opacity: 1; }
             100%{ opacity: 0; }
         }
+
+        /* Footer */
+        .footer {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .footer a { color: var(--gold-500); text-decoration: none; }
     </style>
 </head>
 <body>
@@ -410,9 +482,9 @@
 
     <!-- Header -->
     <div class="header">
-        <div class="badge">Live Scanner</div>
-        <h1>Absensi <span>Wisuda</span><br>AL-WILDAN</h1>
-        <p>Wisuda Akbar Ke-12 · 2026</p>
+        <div class="badge">Scanner Panitia</div>
+        <h1>Absensi <span>Wisuda</span></h1>
+        <p>AL-WILDAN ISLAMIC SCHOOL</p>
     </div>
 
     <!-- Camera card -->
@@ -421,7 +493,7 @@
             <!-- Loading overlay -->
             <div class="cam-loading" id="cam-loading">
                 <div class="spinner"></div>
-                <p>Memuat kamera...</p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 13px;">Membuka kamera...</p>
             </div>
 
             <!-- QR reader -->
@@ -431,32 +503,36 @@
             <div class="scan-overlay">
                 <div class="scan-frame">
                     <span></span>
-                    <div class="scan-line"></div>
+                    <div class="scan-line" id="scan-line"></div>
                 </div>
             </div>
         </div>
-        <p class="scan-hint">Arahkan QR Code ke dalam bingkai</p>
-    </div>
-
-    <!-- Result notification -->
-    <div class="result-card" id="result-card">
-        <div class="result-icon" id="result-icon"></div>
-        <div class="result-title" id="result-title"></div>
-        <div class="result-sub" id="result-sub"></div>
+        <p class="scan-hint">Arahkan QR Code tepat di dalam bingkai emas</p>
     </div>
 
     <!-- Status bar -->
     <div class="status-bar">
         <div class="status-dot"></div>
-        <span class="status-text" id="status-text">Kamera aktif — siap scan</span>
-        <span class="scan-count" id="scan-count">0 scan</span>
+        <span class="status-text" id="status-text">Menunggu scan...</span>
+        <span class="scan-count" id="scan-count">0 SCAN</span>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-        Scanner by <a href="https://www.instagram.com/_anasubaid/" target="_blank">@_anasubaid</a>
+        Sistem Absensi by <a href="https://www.instagram.com/_anasubaid/" target="_blank">@_anasubaid</a>
     </div>
 
+</div>
+
+<!-- Pop-Up Modal -->
+<div class="modal-overlay" id="data-modal">
+    <div class="modal-card" id="modal-card-inner">
+        <div class="modal-icon" id="modal-icon">✅</div>
+        <div class="modal-title" id="modal-title">Berhasil Hadir!</div>
+        <div class="modal-message" id="modal-message">
+            AW1-0001<br>NAMA ANAK
+        </div>
+        <button class="modal-btn" onclick="closeModal()">Lanjut Scan</button>
+    </div>
 </div>
 
 <script>
@@ -466,8 +542,41 @@
 
     let isProcessing = false;
     let scanCount = 0;
+    let modalTimeout;
 
-    // Helper: flash putih saat scan berhasil dibaca
+    // ── AUDIO SYSTEM (Tidak perlu file mp3) ─────────────────
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'success') {
+            // Suara "Ting!" (sukses)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Nada A5
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'error' || type === 'warning') {
+            // Suara "Buzzer" (gagal / duplikat)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+        }
+    }
+
+    // ── UI HELPERS ───────────────────────────────────────────
     function triggerFlash() {
         const el = document.createElement('div');
         el.className = 'flash';
@@ -475,47 +584,58 @@
         setTimeout(() => el.remove(), 400);
     }
 
-    // Helper: tampilkan result card
-    function showResult(icon, title, sub, type) {
-        const card  = document.getElementById('result-card');
-        const iEl   = document.getElementById('result-icon');
-        const tEl   = document.getElementById('result-title');
-        const sEl   = document.getElementById('result-sub');
-
-        card.className = 'result-card'; // reset
-        iEl.textContent = icon;
-        tEl.textContent = title;
-        sEl.textContent = sub;
-
-        // Force reflow untuk re-trigger animasi
-        void card.offsetWidth;
-        card.classList.add(type);
-    }
-
-    function hideResult() {
-        document.getElementById('result-card').className = 'result-card';
-    }
-
-    // Update status bar text
     function setStatus(text) {
         document.getElementById('status-text').textContent = text;
     }
 
     function updateScanCount() {
-        const el = document.getElementById('scan-count');
-        el.textContent = scanCount + (scanCount === 1 ? ' scan' : ' scan');
+        document.getElementById('scan-count').textContent = scanCount + ' SCAN';
+    }
+
+    // Modal Control
+    function showModal(icon, title, message, type) {
+        const modal = document.getElementById('data-modal');
+        const cardInner = document.getElementById('modal-card-inner');
+        
+        document.getElementById('modal-icon').textContent = icon;
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-message').innerHTML = message;
+        
+        // Atur tema warna pop-up
+        cardInner.className = 'modal-card ' + type;
+        
+        // Tampilkan pop-up
+        modal.classList.add('active');
+        
+        // Hentikan garis laser sementara
+        document.getElementById('scan-line').style.display = 'none';
+
+        // Auto-close setelah 2.5 detik agar panitia tidak perlu repot klik "Lanjut" terus
+        clearTimeout(modalTimeout);
+        modalTimeout = setTimeout(() => {
+            closeModal();
+        }, 2500);
+    }
+
+    function closeModal() {
+        document.getElementById('data-modal').classList.remove('active');
+        document.getElementById('scan-line').style.display = 'block';
+        setStatus('Kamera aktif — siap scan');
+        isProcessing = false; // Buka kunci pemrosesan
     }
 
     // ── ON SCAN SUCCESS ───────────────────────────────────────
     function onScanSuccess(decodedText) {
-        if (isProcessing) return;
+        if (isProcessing) return; // Kunci agar tidak membaca ulang saat masih memproses
         isProcessing = true;
 
         triggerFlash();
-        scanCount++;
-        updateScanCount();
-        setStatus('Memproses: ' + decodedText);
-        showResult('⏳', 'Mengecek data...', 'ID: ' + decodedText, 'warning');
+        setStatus('⏳ Mengirim data ID: ' + decodedText + ' ...');
+        
+        // Tampilkan efek loading (kamera tetap nyala, tapi diblur/gelap)
+        const loadingOverlay = document.getElementById('cam-loading');
+        loadingOverlay.querySelector('p').textContent = 'Mengecek ID...';
+        loadingOverlay.classList.remove('hidden');
 
         fetch(GAS_WEB_APP_URL, {
             method: "POST",
@@ -524,36 +644,30 @@
         })
         .then(r => r.json())
         .then(data => {
-            if (data.status === 'success') {
-                showResult('✅', data.message, data.detail || ('ID: ' + decodedText), 'success');
-                setStatus('Berhasil — siap scan berikutnya');
-            } else if (data.status === 'warning') {
-                showResult('⚠️', data.message, data.detail || 'Sudah tercatat sebelumnya', 'warning');
-                setStatus('Duplikat — siap scan berikutnya');
-            } else {
-                showResult('❌', data.message, data.detail || ('ID tidak ditemukan: ' + decodedText), 'error');
-                setStatus('Gagal — siap scan berikutnya');
-            }
+            loadingOverlay.classList.add('hidden'); // Sembunyikan loading
+            scanCount++;
+            updateScanCount();
 
-            setTimeout(() => {
-                hideResult();
-                setStatus('Kamera aktif — siap scan');
-                isProcessing = false;
-            }, 2800);
+            // Memisahkan penanganan response
+            if (data.status === 'success') {
+                playSound('success');
+                showModal('✔️', 'Kehadiran Tercatat!', data.message, 'success');
+            } else if (data.status === 'warning') {
+                playSound('warning');
+                showModal('⚠️', 'Sudah Hadir', data.message, 'warning');
+            } else {
+                playSound('error');
+                showModal('❌', 'Data Tidak Valid', data.message || ('ID tidak ditemukan: ' + decodedText), 'error');
+            }
         })
         .catch(() => {
-            showResult('📡', 'Gagal terhubung ke server', 'Pastikan HP terkoneksi internet', 'error');
-            setStatus('Error koneksi');
-            setTimeout(() => {
-                hideResult();
-                setStatus('Kamera aktif — siap scan');
-                isProcessing = false;
-            }, 3200);
+            loadingOverlay.classList.add('hidden');
+            playSound('error');
+            showModal('📡', 'Gagal Terhubung', 'Pastikan koneksi internet HP stabil.', 'error');
         });
     }
 
     // ── INISIALISASI KAMERA ───────────────────────────────────
-    // Gunakan Html5Qrcode (bukan Scanner) agar video terlihat
     const html5QrCode = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(cameras => {
@@ -563,7 +677,7 @@
             return;
         }
 
-        // Pilih kamera belakang jika ada
+        // Cari kamera belakang
         const backCam = cameras.find(c =>
             c.label.toLowerCase().includes('back') ||
             c.label.toLowerCase().includes('belakang') ||
@@ -575,26 +689,25 @@
         html5QrCode.start(
             camId,
             {
-                fps: 12,
+                fps: 15, // Ditingkatkan ke 15 fps agar lebih cepat membaca QR
                 qrbox: { width: 220, height: 220 },
                 aspectRatio: 1.0,
                 disableFlip: false
             },
             onScanSuccess
         ).then(() => {
-            // Sembunyikan loading overlay saat kamera sudah aktif
+            // Sembunyikan loading overlay saat kamera berhasil dimuat
             document.getElementById('cam-loading').classList.add('hidden');
             setStatus('Kamera aktif — siap scan');
         }).catch(err => {
             console.error(err);
-            document.getElementById('cam-loading').querySelector('p').textContent = 'Izinkan akses kamera';
-            setStatus('Akses kamera ditolak');
+            document.getElementById('cam-loading').querySelector('p').textContent = 'Mohon izinkan akses kamera';
+            setStatus('Akses kamera ditolak browser');
         });
 
     }).catch(err => {
-        console.error(err);
-        document.getElementById('cam-loading').querySelector('p').textContent = 'Gagal memuat kamera';
-        setStatus('Error: ' + err);
+        document.getElementById('cam-loading').querySelector('p').textContent = 'Gagal memuat sistem kamera';
+        setStatus('Error sistem kamera');
     });
 </script>
 </body>
