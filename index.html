@@ -692,12 +692,11 @@
         .then(data => {
             loadingOverlay.classList.add('hidden');
 
-            // [UBAH 2] Setelah increment, langsung simpan ke localStorage
-            scanCount++;
-            localStorage.setItem(STORAGE_KEY, scanCount);
-            updateScanCount();
-
             if (data.status === 'success') {
+                // Hanya hitung scan unik (bukan duplikat)
+                scanCount++;
+                localStorage.setItem(STORAGE_KEY, scanCount);
+                updateScanCount();
                 playSound('success');
                 showModal('✔️', 'Kehadiran Tercatat!', data.message, 'success');
             } else if (data.status === 'warning') {
