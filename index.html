@@ -1,757 +1,612 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner Absensi — Wisuda Akbar AL-WILDAN</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Scanner Presensi — Wisuda Akbar AL-WILDAN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
-        :root {
-            --bg-deep: #070f22;
-            --blue-900: #0d1e40;
-            --blue-700: #1d4ed8;
-            --blue-500: #3b82f6;
-            --blue-400: #60a5fa;
-            --gold-600: #b45309;
-            --gold-500: #f59e0b;
-            --gold-400: #fbbf24;
-            --gold-300: #fcd34d;
-            --red-500:  #ef4444;
-            --white:    #ffffff;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(251, 191, 36, 0.2);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-        }
+    :root {
+      --bg:         #070f22;
+      --navy:       #0d1e40;
+      --gold:       #fbbf24;
+      --gold-lt:    #fde68a;
+      --gold-dk:    #b45309;
+      --blue:       #3b82f6;
+      --blue-lt:    #60a5fa;
+      --green:      #10b981;
+      --red:        #ef4444;
+      --white:      #ffffff;
+      --glass:      rgba(255,255,255,0.03);
+      --glass-bd:   rgba(251,191,36,0.2);
+      --r-xl:24px; --r-lg:16px; --r-md:12px;
+    }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-deep);
-            min-height: 100svh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 0 40px;
-            overflow-x: hidden;
-            position: relative;
-            color: var(--white);
-        }
+    body {
+      font-family:'Plus Jakarta Sans',sans-serif;
+      background:var(--bg); min-height:100svh;
+      display:flex; flex-direction:column; align-items:center;
+      padding:0 0 40px; overflow-x:hidden; color:var(--white);
+      position:relative;
+    }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 70% 60% at 80% -10%, rgba(245, 158, 11, 0.15) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 50% at 20% 110%, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(ellipse 70% 60% at 80% -10%, rgba(245,158,11,.15) 0%,transparent 70%),
+        radial-gradient(ellipse 60% 50% at 20% 110%, rgba(59,130,246,.15) 0%,transparent 60%);
+    }
+    body::after {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.018) 39px,rgba(255,255,255,.018) 40px),
+        repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.018) 39px,rgba(255,255,255,.018) 40px);
+    }
 
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px),
-                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
-            pointer-events: none;
-            z-index: 0;
-        }
+    /* ══════════════════════════════
+       LOADING SCREEN
+    ══════════════════════════════ */
+    .ls {
+      position:fixed; inset:0; z-index:9999;
+      background:var(--bg);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:24px;
+      padding:32px;
+      transition:opacity .5s, visibility .5s;
+    }
+    .ls.hide { opacity:0; visibility:hidden; pointer-events:none; }
 
-        .page-wrap {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 420px;
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
+    .ls-badge {
+      display:inline-flex; align-items:center; gap:7px;
+      background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.28);
+      border-radius:999px; padding:5px 16px;
+      font-size:10px; font-weight:700; letter-spacing:2px;
+      text-transform:uppercase; color:var(--gold);
+    }
+    .ls-badge i { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pdot 2s ease-in-out infinite; }
+    @keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 7px var(--gold);}50%{opacity:.3;box-shadow:none;}}
 
-        /* ── Header ── */
-        .header {
-            text-align: center;
-            padding: 36px 0 0;
-        }
+    .ls-title { font-size:28px; font-weight:900; text-align:center; line-height:1.2; }
+    .ls-title em { font-style:normal; color:var(--gold); }
 
-        .header .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--gold-400);
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin-bottom: 14px;
-        }
+    .ls-prog-wrap { width:100%; max-width:280px; background:rgba(255,255,255,.07); border-radius:999px; height:6px; overflow:hidden; }
+    .ls-prog-bar  { height:100%; width:0%; background:linear-gradient(90deg,var(--gold-dk),var(--gold),var(--gold-lt)); border-radius:999px; transition:width .4s ease; box-shadow:0 0 12px rgba(251,191,36,.5); }
+    .ls-status { font-size:12px; font-weight:600; color:rgba(255,255,255,.4); text-align:center; min-height:18px; }
+    .ls-status span { color:var(--gold); }
 
-        .header .badge::before {
-            content: '';
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--gold-400);
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
+    /* ══════════════════════════════
+       PAGE WRAP
+    ══════════════════════════════ */
+    .page-wrap {
+      position:relative; z-index:1;
+      width:100%; max-width:420px;
+      padding:0 20px;
+      display:flex; flex-direction:column; align-items:center; gap:18px;
+    }
 
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px var(--gold-500); }
-            50% { opacity: 0.4; transform: scale(0.7); box-shadow: 0 0 0 transparent; }
-        }
+    /* ── HEADER ── */
+    .hdr { text-align:center; padding:36px 0 0; }
+    .hdr-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3);
+      border-radius:999px; padding:5px 14px;
+      font-size:11px; font-weight:700; color:var(--gold);
+      letter-spacing:1.2px; text-transform:uppercase; margin-bottom:14px;
+    }
+    .hdr-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pdot 2s ease-in-out infinite; }
+    .hdr h1 { font-size:28px; font-weight:800; color:var(--white); line-height:1.15; letter-spacing:-.5px; }
+    .hdr h1 span { background:-webkit-linear-gradient(0deg,var(--gold-lt),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hdr p { margin-top:6px; font-size:13px; color:rgba(255,255,255,.5); font-weight:500; }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--white);
-            line-height: 1.15;
-            letter-spacing: -0.5px;
-        }
+    /* ── INDEX STATUS BAR ── */
+    .idx-bar {
+      width:100%; display:flex; align-items:center; gap:10px;
+      background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.25);
+      border-radius:var(--r-md); padding:11px 16px;
+    }
+    .idx-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pdot-g 2s ease-in-out infinite; }
+    @keyframes pdot-g{0%,100%{opacity:1;box-shadow:0 0 8px var(--green);}50%{opacity:.5;box-shadow:none;}}
+    .idx-info { flex:1; }
+    .idx-label { font-size:11px; font-weight:700; color:var(--green); }
+    .idx-count { font-size:10px; color:rgba(255,255,255,.4); margin-top:1px; }
+    .idx-refresh {
+      background:none; border:1px solid rgba(255,255,255,.15);
+      border-radius:999px; padding:4px 10px;
+      font-family:inherit; font-size:10px; font-weight:600;
+      color:rgba(255,255,255,.4); cursor:pointer;
+      transition:color .2s, border-color .2s;
+    }
+    .idx-refresh:hover { color:var(--gold); border-color:var(--gold); }
+    .idx-refresh.spin { pointer-events:none; opacity:.5; }
 
-        .header h1 span {
-            color: var(--gold-400);
-            background: -webkit-linear-gradient(0deg, var(--gold-300), var(--gold-500));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    /* ── CAMERA CARD ── */
+    .cam-card {
+      width:100%; background:var(--glass); border:1px solid var(--glass-bd);
+      border-radius:var(--r-xl); padding:16px;
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      box-shadow:0 20px 40px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.1);
+    }
 
-        .header p {
-            margin-top: 6px;
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            font-weight: 500;
-        }
+    .cam-vp {
+      position:relative; width:100%; aspect-ratio:1/1;
+      border-radius:var(--r-lg); overflow:hidden; background:#000;
+    }
 
-        /* ── Camera Card ── */
-        .camera-card {
-            width: 100%;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: 16px;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-        }
+    #reader { position:absolute !important; top:0 !important; left:0 !important; width:100% !important; height:100% !important; border:none !important; padding:0 !important; }
+    #reader video { position:absolute !important; top:0 !important; left:0 !important; width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; }
+    #reader > img, #reader > canvas, #reader__dashboard, #reader__filescan_input,
+    #reader__status_span, #reader__camera_permission_button,
+    #reader__dashboard_section_swaplink, #reader__dashboard_section_csr button,
+    #reader__dashboard_section_csr span, #reader__header_message { display:none !important; }
 
-        .camera-viewport {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1/1;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            background: #000;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
+    .scan-overlay {
+      position:absolute; inset:0; pointer-events:none;
+      display:flex; align-items:center; justify-content:center; z-index:10;
+    }
+    .scan-overlay::before {
+      content:''; position:absolute; inset:0;
+      background:
+        linear-gradient(to right,rgba(7,15,34,.55) 0%,transparent 25%,transparent 75%,rgba(7,15,34,.55) 100%),
+        linear-gradient(to bottom,rgba(7,15,34,.55) 0%,transparent 25%,transparent 75%,rgba(7,15,34,.55) 100%);
+    }
 
-        #reader {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            border: none !important;
-            padding: 0 !important;
-        }
+    .scan-frame { position:relative; width:65%; aspect-ratio:1/1; }
+    .scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after {
+      content:''; position:absolute; width:30px; height:30px;
+      border-color:var(--gold); border-style:solid;
+      filter:drop-shadow(0 0 8px rgba(245,158,11,.6));
+    }
+    .scan-frame::before  { top:0;    left:0;  border-width:4px 0 0 4px; border-radius:8px 0 0 0; }
+    .scan-frame::after   { top:0;    right:0; border-width:4px 4px 0 0; border-radius:0 8px 0 0; }
+    .scan-frame>span::before { bottom:0; left:0;  border-width:0 0 4px 4px; border-radius:0 0 0 8px; }
+    .scan-frame>span::after  { bottom:0; right:0; border-width:0 4px 4px 0; border-radius:0 0 8px 0; }
 
-        #reader video {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-            display: block !important;
-        }
+    .scan-line {
+      position:absolute; left:5%; right:5%; height:3px;
+      background:linear-gradient(90deg,transparent,var(--gold),transparent);
+      box-shadow:0 0 12px var(--gold),0 0 24px rgba(251,191,36,.5);
+      animation:scan-sweep 2s ease-in-out infinite; border-radius:2px;
+    }
+    @keyframes scan-sweep{0%{top:5%;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:95%;opacity:0;}}
 
-        #reader > img,
-        #reader > canvas,
-        #reader__dashboard,
-        #reader__filescan_input,
-        #reader__status_span,
-        #reader__camera_permission_button,
-        #reader__dashboard_section_swaplink,
-        #reader__dashboard_section_csr button,
-        #reader__dashboard_section_csr span,
-        #reader__header_message {
-            display: none !important;
-        }
+    .cam-hint { margin-top:14px; text-align:center; font-size:13px; color:rgba(255,255,255,.6); font-weight:500; }
 
-        .scan-overlay {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
+    /* ── CAM LOADING ── */
+    .cam-loading {
+      position:absolute; inset:0; background:rgba(7,15,34,.85);
+      backdrop-filter:blur(4px); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:12px; z-index:20;
+      transition:opacity .4s;
+    }
+    .cam-loading.hidden { opacity:0; pointer-events:none; }
+    .spinner { width:40px; height:40px; border:3px solid rgba(255,255,255,.1); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin{to{transform:rotate(360deg);}}
 
-        .scan-overlay::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(to right, rgba(7, 15, 34, 0.55) 0%, transparent 25%, transparent 75%, rgba(7, 15, 34, 0.55) 100%),
-                linear-gradient(to bottom, rgba(7, 15, 34, 0.55) 0%, transparent 25%, transparent 75%, rgba(7, 15, 34, 0.55) 100%);
-        }
+    /* ── STATUS BAR ── */
+    .status-bar {
+      width:100%; background:var(--glass); border:1px solid rgba(255,255,255,.05);
+      border-radius:var(--r-md); padding:12px 16px;
+      display:flex; align-items:center; gap:10px;
+      backdrop-filter:blur(8px);
+    }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:var(--blue-lt); flex-shrink:0; animation:pdot-b 2s ease-in-out infinite; }
+    @keyframes pdot-b{0%,100%{opacity:1;box-shadow:0 0 8px var(--blue);}50%{opacity:.5;box-shadow:none;}}
+    .status-text { font-size:12px; color:rgba(255,255,255,.7); font-weight:500; flex-grow:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .scan-count { font-size:11px; font-weight:700; color:var(--navy); background:var(--gold); border-radius:999px; padding:4px 12px; flex-shrink:0; }
+    .reset-btn { background:none; border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.35); border-radius:999px; padding:4px 10px; font-family:inherit; font-size:10px; font-weight:600; cursor:pointer; flex-shrink:0; transition:color .2s,border-color .2s; }
+    .reset-btn:hover { color:var(--red); border-color:var(--red); }
 
-        .scan-frame {
-            position: relative;
-            width: 65%;
-            aspect-ratio: 1/1;
-        }
+    /* ── MODAL ── */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.6);
+      backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      z-index:9999; display:flex; align-items:center; justify-content:center;
+      padding:20px; opacity:0; pointer-events:none; transition:opacity .3s ease;
+    }
+    .modal-overlay.active { opacity:1; pointer-events:all; }
 
-        .scan-frame::before,
-        .scan-frame::after,
-        .scan-frame > span::before,
-        .scan-frame > span::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-color: var(--gold-400);
-            border-style: solid;
-            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
-        }
-        .scan-frame::before  { top: 0;    left: 0;  border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
-        .scan-frame::after   { top: 0;    right: 0; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
-        .scan-frame > span::before { bottom: 0; left: 0;  border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
-        .scan-frame > span::after  { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
+    .modal-card {
+      background:rgba(13,30,64,.85); border:1px solid rgba(255,255,255,.1);
+      border-radius:var(--r-xl); width:100%; max-width:360px; padding:30px 24px;
+      text-align:center; box-shadow:0 24px 48px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);
+      transform:translateY(20px) scale(.95);
+      transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+    }
+    .modal-overlay.active .modal-card { transform:none; }
 
-        .scan-line {
-            position: absolute;
-            left: 5%; right: 5%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
-            box-shadow: 0 0 12px var(--gold-400), 0 0 24px rgba(251, 191, 36, 0.5);
-            animation: scan-sweep 2s ease-in-out infinite;
-            border-radius: 2px;
-        }
+    .modal-icon { width:70px; height:70px; margin:0 auto 16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; }
+    .modal-card.success .modal-icon { background:rgba(16,185,129,.2); border:2px solid #10b981; color:#10b981; box-shadow:0 0 20px rgba(16,185,129,.3); }
+    .modal-card.warning .modal-icon { background:rgba(245,158,11,.2); border:2px solid var(--gold); color:var(--gold); box-shadow:0 0 20px rgba(245,158,11,.3); }
+    .modal-card.error   .modal-icon { background:rgba(239,68,68,.2);  border:2px solid var(--red); color:var(--red); box-shadow:0 0 20px rgba(239,68,68,.3); }
 
-        @keyframes scan-sweep {
-            0%   { top: 5%; opacity: 0; }
-            10%  { opacity: 1; }
-            90%  { opacity: 1; }
-            100% { top: 95%; opacity: 0; }
-        }
+    .modal-title   { font-size:20px; font-weight:800; color:var(--white); margin-bottom:8px; }
+    .modal-message { font-size:14px; color:rgba(255,255,255,.8); line-height:1.5; padding:12px; background:rgba(0,0,0,.2); border-radius:var(--r-md); margin-bottom:24px; border:1px solid rgba(255,255,255,.05); }
+    .modal-btn { background:linear-gradient(135deg,var(--gold),var(--gold-dk)); color:var(--navy); border:none; width:100%; padding:14px; border-radius:var(--r-lg); font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(245,158,11,.3); transition:transform .2s; }
+    .modal-btn:active { transform:scale(.97); }
 
-        .scan-hint {
-            margin-top: 14px;
-            text-align: center;
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-            font-weight: 500;
-        }
+    /* ── RESET CONFIRM ── */
+    .modal-card.confirm .modal-icon { background:rgba(239,68,68,.15); border:2px solid var(--red); color:var(--red); box-shadow:0 0 20px rgba(239,68,68,.2); }
+    .modal-btn.danger { background:linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; box-shadow:0 4px 12px rgba(239,68,68,.3); margin-bottom:10px; }
+    .modal-btn.ghost  { background:rgba(255,255,255,.07); color:rgba(255,255,255,.6); box-shadow:none; border:1px solid rgba(255,255,255,.1); }
 
-        /* ── Status bar ── */
-        .status-bar {
-            width: 100%;
-            background: var(--glass-bg);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: var(--radius-md);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(8px);
-        }
+    /* ── FLASH ── */
+    .flash { position:fixed; inset:0; background:rgba(255,255,255,.4); pointer-events:none; z-index:999; opacity:0; animation:flash-anim .3s ease forwards; }
+    @keyframes flash-anim{0%{opacity:1;}100%{opacity:0;}}
 
-        .status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--blue-400);
-            flex-shrink: 0;
-            animation: pulse-dot-blue 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot-blue {
-            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--blue-500); }
-            50% { opacity: 0.5; box-shadow: 0 0 0 transparent; }
-        }
-
-        .status-text {
-            font-size: 12px;
-            color: rgba(255,255,255,0.7);
-            font-weight: 500;
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .scan-count {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--blue-900);
-            background: var(--gold-400);
-            border-radius: 999px;
-            padding: 4px 12px;
-            flex-shrink: 0;
-        }
-
-        /* ── Reset button ── */
-        .reset-btn {
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.35);
-            border-radius: 999px;
-            padding: 4px 10px;
-            font-family: inherit;
-            font-size: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            flex-shrink: 0;
-            letter-spacing: 0.5px;
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        .reset-btn:hover, .reset-btn:active {
-            color: var(--red-500);
-            border-color: var(--red-500);
-        }
-
-        /* ── Loading state ── */
-        .cam-loading {
-            position: absolute;
-            inset: 0;
-            background: rgba(7, 15, 34, 0.85);
-            backdrop-filter: blur(4px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            z-index: 20;
-            transition: opacity 0.4s;
-        }
-
-        .cam-loading.hidden { opacity: 0; pointer-events: none; }
-
-        .spinner {
-            width: 40px; height: 40px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--gold-400);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Modal ── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .modal-card {
-            background: rgba(13, 30, 64, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-xl);
-            width: 100%;
-            max-width: 360px;
-            padding: 30px 24px;
-            text-align: center;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-            transform: translateY(20px) scale(0.95);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .modal-overlay.active .modal-card {
-            transform: translateY(0) scale(1);
-        }
-
-        .modal-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
-        .modal-card.success .modal-icon {
-            background: rgba(16, 185, 129, 0.2);
-            border: 2px solid #10b981;
-            color: #10b981;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-        }
-
-        .modal-card.warning .modal-icon {
-            background: rgba(245, 158, 11, 0.2);
-            border: 2px solid var(--gold-500);
-            color: var(--gold-500);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-        }
-
-        .modal-card.error .modal-icon {
-            background: rgba(239, 68, 68, 0.2);
-            border: 2px solid var(--red-500);
-            color: var(--red-500);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 8px;
-        }
-
-        .modal-message {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.5;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-md);
-            margin-bottom: 24px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .modal-btn {
-            background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
-            color: var(--blue-900);
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: var(--radius-lg);
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .modal-btn:active { transform: scale(0.97); }
-
-        /* ── Reset confirm modal ── */
-        .modal-card.confirm .modal-icon {
-            background: rgba(239, 68, 68, 0.15);
-            border: 2px solid var(--red-500);
-            color: var(--red-500);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
-        }
-
-        .modal-btn.danger {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-            margin-bottom: 10px;
-        }
-
-        .modal-btn.ghost {
-            background: rgba(255,255,255,0.07);
-            color: rgba(255,255,255,0.6);
-            box-shadow: none;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* ── Flash ── */
-        .flash {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.4);
-            pointer-events: none;
-            z-index: 999;
-            opacity: 0;
-            animation: flash-anim 0.3s ease forwards;
-        }
-
-        @keyframes flash-anim {
-            0%  { opacity: 1; }
-            100%{ opacity: 0; }
-        }
-
-        .footer {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            text-align: center;
-            font-weight: 500;
-            margin-top: 10px;
-        }
-        .footer a { color: var(--gold-500); text-decoration: none; }
-    </style>
+    .footer { font-size:12px; color:rgba(255,255,255,.3); text-align:center; font-weight:500; margin-top:8px; }
+    .footer a { color:var(--gold); text-decoration:none; }
+  </style>
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
+<div class="ls" id="ls">
+  <div class="ls-badge"><i></i> Scanner Panitia</div>
+  <div class="ls-title">Presensi <em>Wisuda</em><br>AL-WILDAN</div>
+  <div class="ls-prog-wrap">
+    <div class="ls-prog-bar" id="ls-bar"></div>
+  </div>
+  <div class="ls-status" id="ls-status">Menghubungkan ke server...</div>
+</div>
+
 <div class="page-wrap">
 
-    <!-- Header -->
-    <div class="header">
-        <div class="badge">Scanner Panitia</div>
-        <h1>Presensi <span>Wisuda</span></h1>
-        <p>AL-WILDAN ISLAMIC SCHOOL</p>
-    </div>
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-badge">Scanner Panitia</div>
+    <h1>Presensi <span>Wisuda</span></h1>
+    <p>AL-WILDAN ISLAMIC SCHOOL</p>
+  </div>
 
-    <!-- Camera card -->
-    <div class="camera-card">
-        <div class="camera-viewport">
-            <div class="cam-loading" id="cam-loading">
-                <div class="spinner"></div>
-                <p style="color: rgba(255,255,255,0.6); font-size: 13px;">Membuka kamera...</p>
-            </div>
-            <div id="reader"></div>
-            <div class="scan-overlay">
-                <div class="scan-frame">
-                    <span></span>
-                    <div class="scan-line" id="scan-line"></div>
-                </div>
-            </div>
+  <!-- INDEX STATUS -->
+  <div class="idx-bar" id="idx-bar">
+    <div class="idx-dot"></div>
+    <div class="idx-info">
+      <div class="idx-label" id="idx-label">Index Aktif</div>
+      <div class="idx-count" id="idx-count">Memuat...</div>
+    </div>
+    <button class="idx-refresh" id="idx-refresh" onclick="refreshIndex()">↻ Refresh</button>
+  </div>
+
+  <!-- CAMERA -->
+  <div class="cam-card">
+    <div class="cam-vp">
+      <div class="cam-loading" id="cam-loading">
+        <div class="spinner"></div>
+        <p style="color:rgba(255,255,255,.6);font-size:13px;">Membuka kamera...</p>
+      </div>
+      <div id="reader"></div>
+      <div class="scan-overlay">
+        <div class="scan-frame">
+          <span></span>
+          <div class="scan-line" id="scan-line"></div>
         </div>
-        <p class="scan-hint">Arahkan QR Code tepat di dalam bingkai emas</p>
+      </div>
     </div>
+    <p class="cam-hint">Arahkan QR Code tepat di dalam bingkai emas</p>
+  </div>
 
-    <!-- Status bar -->
-    <div class="status-bar">
-        <div class="status-dot"></div>
-        <span class="status-text" id="status-text">Menunggu scan...</span>
-        <span class="scan-count" id="scan-count">0 SCAN</span>
-        <!-- [BARU] Tombol reset untuk mulai sesi baru -->
-        <button class="reset-btn" onclick="confirmReset()">RESET</button>
-    </div>
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text" id="status-text">Memuat index data...</span>
+    <span class="scan-count" id="scan-count">0 SCAN</span>
+    <button class="reset-btn" onclick="confirmReset()">RESET</button>
+  </div>
 
-    <div class="footer">
-        Sistem Presensi by <a href="https://www.instagram.com/_anasubaid/" target="_blank">Panitia Wisuda Akbar 2026</a>
-    </div>
+  <div class="footer">
+    Scanner by <a href="#">Panitia Wisuda Akbar 2026</a>
+  </div>
 
 </div>
 
-<!-- Modal: Hasil Scan -->
+<!-- MODAL: HASIL SCAN -->
 <div class="modal-overlay" id="data-modal">
-    <div class="modal-card" id="modal-card-inner">
-        <div class="modal-icon" id="modal-icon">✅</div>
-        <div class="modal-title" id="modal-title">Berhasil Hadir!</div>
-        <div class="modal-message" id="modal-message">
-            AW1-0001<br>NAMA ANAK
-        </div>
-        <button class="modal-btn" onclick="closeModal()">Lanjut Scan</button>
-    </div>
+  <div class="modal-card" id="modal-card-inner">
+    <div class="modal-icon" id="modal-icon">✅</div>
+    <div class="modal-title" id="modal-title">Berhasil!</div>
+    <div class="modal-message" id="modal-message">—</div>
+    <button class="modal-btn" onclick="closeModal()">Lanjut Scan</button>
+  </div>
 </div>
 
-<!-- Modal: Konfirmasi Reset -->
+<!-- MODAL: KONFIRMASI RESET -->
 <div class="modal-overlay" id="reset-modal">
-    <div class="modal-card confirm">
-        <div class="modal-icon">🗑️</div>
-        <div class="modal-title">Reset Hitungan?</div>
-        <div class="modal-message">
-            Jumlah scan akan dikembalikan ke 0.<br>
-            Data absensi di Google Sheets <strong>tidak</strong> terpengaruh.
-        </div>
-        <button class="modal-btn danger" onclick="doReset()">Ya, Reset</button>
-        <button class="modal-btn ghost" onclick="closeResetModal()">Batal</button>
-    </div>
+  <div class="modal-card confirm">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Reset Hitungan?</div>
+    <div class="modal-message">Jumlah scan akan kembali ke 0.<br>Data di Google Sheets <strong>tidak</strong> terpengaruh.</div>
+    <button class="modal-btn danger" onclick="doReset()">Ya, Reset</button>
+    <button class="modal-btn ghost"  onclick="closeResetModal()">Batal</button>
+  </div>
 </div>
 
 <script>
-    // ── KONFIGURASI ──────────────────────────────────────────
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGa-v1k1t5MU8QE0UJjjx7AVU4WN5JuVaIKsL0_lfGyiFvOItA6KQ-CyQHMIX0lOKw/exec";
-    const STORAGE_KEY = 'wisuda_scan_count'; // Key localStorage
-    // ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  KONFIGURASI
+// ═══════════════════════════════════════════════
+const GAS_URL     = 'https://script.google.com/macros/s/AKfycbycM3nExbTGP_pF1KbSq2LPaPYohbe1cMFxo_EEPzZ260KRe_ncd_dNSL-SVGVy2uDE/exec';
+const STORAGE_KEY = 'wisuda_scan_count';
 
-    let isProcessing = false;
-    let modalTimeout;
+// ── STATE ────────────────────────────────────────
+let scanIndex    = {};   // { id: { nama, status, row, sheetName } }
+let indexLoaded  = false;
+let isProcessing = false;
+let modalTimeout;
+let scanCount    = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
 
-    // [UBAH 1] Inisialisasi scanCount dari localStorage, bukan dari 0
-    let scanCount = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+// ── REFS ─────────────────────────────────────────
+const lsBar    = document.getElementById('ls-bar');
+const lsStatus = document.getElementById('ls-status');
+const lsScreen = document.getElementById('ls');
 
-    // ── AUDIO SYSTEM ─────────────────────────────────────────
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioCtx = new AudioContext();
+// ── PROGRESS ─────────────────────────────────────
+function setProgress(pct, msg) {
+  lsBar.style.width = pct + '%';
+  lsStatus.innerHTML = msg;
+}
 
-    function playSound(type) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-        if (type === 'success') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
-        } else if (type === 'error' || type === 'warning') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.25);
-        }
-    }
+// ── LOAD INDEX ───────────────────────────────────
+async function loadIndex() {
+  try {
+    setProgress(20, 'Mengambil data presensi...');
+    const r = await fetch(`${GAS_URL}?action=getSummaryIndex`);
 
-    // ── UI HELPERS ───────────────────────────────────────────
-    function triggerFlash() {
-        const el = document.createElement('div');
-        el.className = 'flash';
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 400);
-    }
+    setProgress(65, 'Memproses index data...');
+    const d = await r.json();
 
-    function setStatus(text) {
-        document.getElementById('status-text').textContent = text;
-    }
+    if (d.status !== 'success') throw new Error('Gagal load index');
 
-    function updateScanCount() {
-        document.getElementById('scan-count').textContent = scanCount + ' SCAN';
-    }
+    scanIndex   = d.data;
+    indexLoaded = true;
+    const total = Object.keys(scanIndex).length;
+    const hadir = Object.values(scanIndex).filter(v => v.status === 'HADIR').length;
 
-    // Modal hasil scan
-    function showModal(icon, title, message, type) {
-        const modal = document.getElementById('data-modal');
-        const cardInner = document.getElementById('modal-card-inner');
-        document.getElementById('modal-icon').textContent = icon;
-        document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-message').innerHTML = message;
-        cardInner.className = 'modal-card ' + type;
-        modal.classList.add('active');
-        document.getElementById('scan-line').style.display = 'none';
+    setProgress(90, `Index siap — <span>${total}</span> siswa dimuat`);
+    await sleep(400);
 
-        clearTimeout(modalTimeout);
-        modalTimeout = setTimeout(() => closeModal(), 2500);
-    }
+    // Update index bar
+    document.getElementById('idx-label').textContent = 'Index Aktif — Validasi Lokal';
+    document.getElementById('idx-count').textContent =
+      `${total} siswa | ${hadir} sudah hadir | ${total - hadir} belum`;
 
-    function closeModal() {
-        document.getElementById('data-modal').classList.remove('active');
-        document.getElementById('scan-line').style.display = 'block';
-        setStatus('Kamera aktif — siap scan');
-        isProcessing = false;
-    }
+    setProgress(100, `✓ <span>${total} data</span> berhasil dimuat`);
+    await sleep(500);
 
-    // Modal konfirmasi reset
-    function confirmReset() {
-        document.getElementById('reset-modal').classList.add('active');
-    }
-
-    function closeResetModal() {
-        document.getElementById('reset-modal').classList.remove('active');
-    }
-
-    function doReset() {
-        // [BARU] Hapus data di localStorage dan reset variabel
-        scanCount = 0;
-        localStorage.removeItem(STORAGE_KEY);
-        updateScanCount();
-        closeResetModal();
-        setStatus('Hitungan direset — siap scan sesi baru');
-    }
-
-    // ── ON SCAN SUCCESS ───────────────────────────────────────
-    function onScanSuccess(decodedText) {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        triggerFlash();
-        setStatus('⏳ Mengirim data ID: ' + decodedText + ' ...');
-
-        const loadingOverlay = document.getElementById('cam-loading');
-        loadingOverlay.querySelector('p').textContent = 'Mengecek ID...';
-        loadingOverlay.classList.remove('hidden');
-
-        fetch(GAS_WEB_APP_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ id_unik: decodedText })
-        })
-        .then(r => r.json())
-        .then(data => {
-            loadingOverlay.classList.add('hidden');
-
-            if (data.status === 'success') {
-                // Hanya hitung scan unik (bukan duplikat)
-                scanCount++;
-                localStorage.setItem(STORAGE_KEY, scanCount);
-                updateScanCount();
-                playSound('success');
-                showModal('✔️', 'Kehadiran Tercatat!', data.message, 'success');
-            } else if (data.status === 'warning') {
-                playSound('warning');
-                showModal('⚠️', 'Sudah Hadir', data.message, 'warning');
-            } else {
-                playSound('error');
-                showModal('❌', 'Data Tidak Valid', data.message || ('ID tidak ditemukan: ' + decodedText), 'error');
-            }
-        })
-        .catch(() => {
-            loadingOverlay.classList.add('hidden');
-            playSound('error');
-            showModal('📡', 'Gagal Terhubung', 'Pastikan koneksi internet HP stabil.', 'error');
-        });
-    }
-
-    // ── INISIALISASI KAMERA ───────────────────────────────────
-    const html5QrCode = new Html5Qrcode("reader");
-
-    Html5Qrcode.getCameras().then(cameras => {
-        if (!cameras || cameras.length === 0) {
-            setStatus('Kamera tidak ditemukan');
-            document.getElementById('cam-loading').querySelector('p').textContent = 'Kamera tidak ditemukan';
-            return;
-        }
-
-        const backCam = cameras.find(c =>
-            c.label.toLowerCase().includes('back') ||
-            c.label.toLowerCase().includes('belakang') ||
-            c.label.toLowerCase().includes('rear') ||
-            c.label.toLowerCase().includes('environment')
-        );
-        const camId = backCam ? backCam.id : cameras[cameras.length - 1].id;
-
-        html5QrCode.start(
-            camId,
-            { fps: 15, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0, disableFlip: false },
-            onScanSuccess
-        ).then(() => {
-            document.getElementById('cam-loading').classList.add('hidden');
-            setStatus('Kamera aktif — siap scan');
-        }).catch(err => {
-            console.error(err);
-            document.getElementById('cam-loading').querySelector('p').textContent = 'Mohon izinkan akses kamera';
-            setStatus('Akses kamera ditolak browser');
-        });
-
-    }).catch(() => {
-        document.getElementById('cam-loading').querySelector('p').textContent = 'Gagal memuat sistem kamera';
-        setStatus('Error sistem kamera');
-    });
-
-    // [UBAH 3] Tampilkan jumlah scan dari localStorage saat app dibuka
+    lsScreen.classList.add('hide');
+    setStatus('Kamera aktif — siap scan');
     updateScanCount();
+
+  } catch (err) {
+    setProgress(100, '❌ Gagal memuat — <span>refresh halaman</span>');
+    lsBar.style.background = '#ef4444';
+    document.getElementById('idx-label').textContent = 'Index Gagal Dimuat';
+    document.getElementById('idx-count').textContent = 'Tap Refresh untuk coba lagi';
+    lsScreen.classList.add('hide');
+  }
+}
+
+// ── REFRESH INDEX ────────────────────────────────
+async function refreshIndex() {
+  const btn = document.getElementById('idx-refresh');
+  btn.textContent = '↻ Memuat...';
+  btn.classList.add('spin');
+  document.getElementById('idx-label').textContent = 'Memperbarui index...';
+
+  try {
+    const r = await fetch(`${GAS_URL}?action=getSummaryIndex`);
+    const d = await r.json();
+    if (d.status !== 'success') throw new Error();
+
+    scanIndex   = d.data;
+    indexLoaded = true;
+    const total = Object.keys(scanIndex).length;
+    const hadir = Object.values(scanIndex).filter(v => v.status === 'HADIR').length;
+
+    document.getElementById('idx-label').textContent = 'Index Aktif — Diperbarui';
+    document.getElementById('idx-count').textContent =
+      `${total} siswa | ${hadir} sudah hadir | ${total - hadir} belum`;
+    setStatus('Index diperbarui — siap scan');
+  } catch {
+    document.getElementById('idx-label').textContent = 'Refresh Gagal';
+    document.getElementById('idx-count').textContent = 'Coba lagi';
+  }
+
+  btn.textContent = '↻ Refresh';
+  btn.classList.remove('spin');
+}
+
+// ── AUDIO ─────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioCtx();
+
+function playSound(type) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+
+  if (type === 'success') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + .1);
+    gain.gain.setValueAtTime(.5, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.01, audioCtx.currentTime + .15);
+    osc.start(); osc.stop(audioCtx.currentTime + .2);
+  } else {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + .2);
+    gain.gain.setValueAtTime(.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.01, audioCtx.currentTime + .2);
+    osc.start(); osc.stop(audioCtx.currentTime + .25);
+  }
+}
+
+// ── UI HELPERS ────────────────────────────────────
+function triggerFlash() {
+  const el = document.createElement('div');
+  el.className = 'flash';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 400);
+}
+
+function setStatus(txt) { document.getElementById('status-text').textContent = txt; }
+
+function updateScanCount() {
+  document.getElementById('scan-count').textContent = scanCount + ' SCAN';
+}
+
+function showModal(icon, title, message, type) {
+  const modal = document.getElementById('data-modal');
+  const card  = document.getElementById('modal-card-inner');
+  document.getElementById('modal-icon').textContent    = icon;
+  document.getElementById('modal-title').textContent   = title;
+  document.getElementById('modal-message').innerHTML   = message;
+  card.className = 'modal-card ' + type;
+  modal.classList.add('active');
+  document.getElementById('scan-line').style.display = 'none';
+  clearTimeout(modalTimeout);
+  modalTimeout = setTimeout(() => closeModal(), 2800);
+}
+
+function closeModal() {
+  document.getElementById('data-modal').classList.remove('active');
+  document.getElementById('scan-line').style.display = 'block';
+  setStatus('Kamera aktif — siap scan');
+  isProcessing = false;
+}
+
+function confirmReset() { document.getElementById('reset-modal').classList.add('active'); }
+function closeResetModal() { document.getElementById('reset-modal').classList.remove('active'); }
+function doReset() {
+  scanCount = 0; localStorage.removeItem(STORAGE_KEY);
+  updateScanCount(); closeResetModal();
+  setStatus('Hitungan direset — siap scan');
+}
+
+// ── ON SCAN ───────────────────────────────────────
+async function onScanSuccess(decodedText) {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  triggerFlash();
+  const id = decodedText.trim();
+
+  // ══ VALIDASI LOKAL (0ms, tanpa internet) ══
+  if (indexLoaded) {
+    const entry = scanIndex[id];
+
+    // ID tidak ada di index
+    if (!entry) {
+      playSound('error');
+      showModal('❌', 'Data Tidak Valid',
+        'ID <b>' + id + '</b> tidak ditemukan di database.', 'error');
+      return; // TIDAK kirim ke GAS
+    }
+
+    // Sudah hadir — deteksi lokal instan
+    if (entry.status === 'HADIR') {
+      playSound('error');
+      showModal('⚠️', 'Sudah Hadir',
+        entry.nama + ' sudah dipindai sebelumnya!', 'warning');
+      return; // TIDAK kirim ke GAS
+    }
+  }
+
+  // ══ KIRIM KE GAS (hanya scan valid & belum hadir) ══
+  setStatus('⏳ Mencatat kehadiran: ' + id);
+
+  const loadingOverlay = document.getElementById('cam-loading');
+  loadingOverlay.querySelector('p').textContent = 'Mencatat...';
+  loadingOverlay.classList.remove('hidden');
+
+  try {
+    const body = new URLSearchParams({ id_unik: id });
+
+    // Kirim row_num & sheet_name jika index tersedia → fast path di GAS
+    if (indexLoaded && scanIndex[id]) {
+      body.append('row_num',    scanIndex[id].row);
+      body.append('sheet_name', scanIndex[id].sheetName);
+    }
+
+    const r = await fetch(GAS_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    const d = await r.json();
+    loadingOverlay.classList.add('hidden');
+
+    if (d.status === 'success') {
+      // Update index lokal agar scan berikutnya langsung tahu
+      if (indexLoaded && scanIndex[id]) {
+        scanIndex[id].status = 'HADIR';
+      }
+      scanCount++;
+      localStorage.setItem(STORAGE_KEY, scanCount);
+      updateScanCount();
+      playSound('success');
+      showModal('✔️', 'Kehadiran Tercatat!', d.message, 'success');
+
+    } else if (d.status === 'warning') {
+      // Update index lokal
+      if (indexLoaded && scanIndex[id]) scanIndex[id].status = 'HADIR';
+      playSound('error');
+      showModal('⚠️', 'Sudah Hadir', d.message, 'warning');
+
+    } else {
+      playSound('error');
+      showModal('❌', 'Data Tidak Valid', d.message || 'ID tidak ditemukan.', 'error');
+    }
+
+  } catch {
+    loadingOverlay.classList.add('hidden');
+    playSound('error');
+    showModal('📡', 'Gagal Terhubung', 'Pastikan koneksi internet HP stabil.', 'error');
+  }
+}
+
+// ── INIT KAMERA ───────────────────────────────────
+const html5QrCode = new Html5Qrcode('reader');
+
+Html5Qrcode.getCameras().then(cameras => {
+  if (!cameras || !cameras.length) {
+    setStatus('Kamera tidak ditemukan');
+    document.getElementById('cam-loading').querySelector('p').textContent = 'Kamera tidak ditemukan';
+    return;
+  }
+
+  const backCam = cameras.find(c =>
+    /back|belakang|rear|environment/i.test(c.label)
+  );
+  const camId = backCam ? backCam.id : cameras[cameras.length - 1].id;
+
+  html5QrCode.start(
+    camId,
+    { fps:15, qrbox:{width:220,height:220}, aspectRatio:1.0, disableFlip:false },
+    onScanSuccess
+  ).then(() => {
+    document.getElementById('cam-loading').classList.add('hidden');
+  }).catch(() => {
+    document.getElementById('cam-loading').querySelector('p').textContent = 'Mohon izinkan akses kamera';
+    setStatus('Akses kamera ditolak');
+  });
+
+}).catch(() => {
+  document.getElementById('cam-loading').querySelector('p').textContent = 'Gagal memuat sistem kamera';
+  setStatus('Error sistem kamera');
+});
+
+// ── START ─────────────────────────────────────────
+updateScanCount();
+loadIndex();
 </script>
 </body>
 </html>
