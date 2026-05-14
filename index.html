@@ -113,6 +113,7 @@
     .idx-info { flex:1; }
     .idx-label { font-size:11px; font-weight:700; color:var(--green); }
     .idx-count { font-size:10px; color:rgba(255,255,255,.4); margin-top:1px; }
+    .idx-time  { font-size:9px;  color:rgba(255,255,255,.25); margin-top:2px; font-style:italic; }
     .idx-refresh {
       background:none; border:1px solid rgba(255,255,255,.15);
       border-radius:999px; padding:4px 10px;
@@ -268,6 +269,7 @@
     <div class="idx-info">
       <div class="idx-label" id="idx-label">Index Aktif</div>
       <div class="idx-count" id="idx-count">Memuat...</div>
+      <div class="idx-time" id="idx-time"></div>
     </div>
     <button class="idx-refresh" id="idx-refresh" onclick="refreshIndex()">↻ Refresh</button>
   </div>
@@ -329,7 +331,7 @@
 // ═══════════════════════════════════════════════
 //  KONFIGURASI
 // ═══════════════════════════════════════════════
-const GAS_URL     = 'https://script.google.com/macros/s/AKfycbycM3nExbTGP_pF1KbSq2LPaPYohbe1cMFxo_EEPzZ260KRe_ncd_dNSL-SVGVy2uDE/exec';
+const GAS_URL     = 'https://script.google.com/macros/s/AKfycbykuBMalgDRleU3oKr1qPuszJOkRNi4riRyu05a_8hA6la8KHsoouejtcbmX2c1mcXH/exec';
 const STORAGE_KEY = 'wisuda_scan_count';
 
 // ── STATE ────────────────────────────────────────
@@ -379,6 +381,8 @@ async function loadIndex() {
     setProgress(100, `✓ <span>${total} data</span> berhasil dimuat`);
     await sleep(500);
 
+    lastRefresh = Date.now();
+    updateTimestamp();
     lsScreen.classList.add('hide');
     setStatus('Kamera aktif — siap scan');
     updateScanCount();
@@ -392,35 +396,90 @@ async function loadIndex() {
   }
 }
 
-// ── REFRESH INDEX ────────────────────────────────
-async function refreshIndex() {
+// ── REFRESH INDEX (getHadirList — ringan) ─────────
+// Hanya fetch ID yang HADIR → merge ke index lokal
+async function refreshIndex(isAuto = false) {
   const btn = document.getElementById('idx-refresh');
-  btn.textContent = '↻ Memuat...';
-  btn.classList.add('spin');
-  document.getElementById('idx-label').textContent = 'Memperbarui index...';
+  if (!isAuto) {
+    btn.textContent = '↻ Memuat...';
+    btn.classList.add('spin');
+    document.getElementById('idx-label').textContent = 'Memperbarui index...';
+  }
 
   try {
-    const r = await fetch(`${GAS_URL}?action=getSummaryIndex`);
+    const r = await fetch(`${GAS_URL}?action=getHadirList`);
     const d = await r.json();
     if (d.status !== 'success') throw new Error();
 
-    scanIndex   = d.data;
-    indexLoaded = true;
-    const total = Object.keys(scanIndex).length;
-    const hadir = Object.values(scanIndex).filter(v => v.status === 'HADIR').length;
+    // Merge: update hanya entry yang berubah jadi HADIR
+    let updated = 0;
+    d.data.forEach(id => {
+      if (scanIndex[id] && scanIndex[id].status !== 'HADIR') {
+        scanIndex[id].status = 'HADIR';
+        updated++;
+      }
+    });
 
-    document.getElementById('idx-label').textContent = 'Index Aktif — Diperbarui';
+    const total = Object.keys(scanIndex).length;
+    const hadir = d.total;
+
+    document.getElementById('idx-label').textContent = 'Index Aktif';
     document.getElementById('idx-count').textContent =
       `${total} siswa | ${hadir} sudah hadir | ${total - hadir} belum`;
-    setStatus('Index diperbarui — siap scan');
+
+    lastRefresh = Date.now();
+    updateTimestamp();
+
+    if (!isAuto) {
+      setStatus(updated > 0
+        ? `Index diperbarui — ${updated} perubahan baru`
+        : 'Index diperbarui — siap scan');
+    }
+
   } catch {
-    document.getElementById('idx-label').textContent = 'Refresh Gagal';
-    document.getElementById('idx-count').textContent = 'Coba lagi';
+    if (!isAuto) {
+      document.getElementById('idx-label').textContent = 'Refresh Gagal';
+      document.getElementById('idx-count').textContent = 'Coba lagi';
+    }
   }
 
-  btn.textContent = '↻ Refresh';
-  btn.classList.remove('spin');
+  if (!isAuto) {
+    btn.textContent = '↻ Refresh';
+    btn.classList.remove('spin');
+  }
 }
+
+// ── TIMESTAMP "Diperbarui X detik lalu" ──────────
+let lastRefresh    = null;
+let timestampTimer = null;
+
+function updateTimestamp() {
+  const el = document.getElementById('idx-time');
+  if (!lastRefresh) { el.textContent = ''; return; }
+
+  function tick() {
+    const secs = Math.floor((Date.now() - lastRefresh) / 1000);
+    if (secs < 60)  el.textContent = `Diperbarui ${secs} detik lalu`;
+    else            el.textContent = `Diperbarui ${Math.floor(secs/60)} menit lalu`;
+  }
+
+  tick();
+  clearInterval(timestampTimer);
+  timestampTimer = setInterval(tick, 10000);
+}
+
+// ── AUTO REFRESH 90 DETIK (background, silent) ───
+setInterval(() => {
+  if (indexLoaded) refreshIndex(true);
+}, 90 * 1000);
+
+// ── ON FOCUS: refresh saat HP dibuka kembali ─────
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && indexLoaded) {
+    const secsSince = lastRefresh ? (Date.now() - lastRefresh) / 1000 : 999;
+    if (secsSince > 30) refreshIndex(true);
+  }
+});
 
 // ── AUDIO ─────────────────────────────────────────
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
